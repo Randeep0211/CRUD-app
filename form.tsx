@@ -1,106 +1,66 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+
+import { GlobalContext } from "./context/GlobalState";
+
+import Edit from './edit'
 
 
 
 // import Slot from './slot'
 
 function Form() {
+  let getData = () => {
+    const user = localStorage.getItem("users");
+    console.log(user);
 
-
-  let getData = ()=>{
-   const user= localStorage.getItem('users')
-   console.log(user)
-
-    if(user){
-      return JSON.parse(user)
+    if (user) {
+      return JSON.parse(user);
+    } else {
+      return [];
     }
-    else{
-      return []
-    }
-  }
+  };
 
+  const { addData, deleteData,editItem, user } = useContext(GlobalContext);
+  console.info("user : ", user);
 
-
-
-  const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
-  const [num, setNum] = useState("");
-  const [editData , setEditData] = useState(null);
-  
-
-  const Arr: string[] = [];
   const [data, setData] = useState(getData());
+  const [name, setName] = useState<string>("");
+  const [surname, setSurname] = useState<string>("");
+  const [num, setNum] = useState<number | undefined >(undefined);
 
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const addData = (evt: any) => {
-    evt.preventDefault();
+    const newUser = {
+      name,
+      surname,
+      num,
+    };
+    console.info('submit user  : ', newUser);
+    addData(newUser);
+    setName('')
+    setSurname('')
+    setNum(undefined)
     
-
-    if(!name || !surname || !num) {
-        return;
-    }
-    else if(name && surname && num  && editData){
-      console.info("update");
-
-      const updateData = data.map((value:any)=>{
-        if(value.id === editData){
-          return {...value , name:name , surname:surname ,num:num}
-        }
-        
-        return value;
-      });
-
-      setData(updateData);
-      setName("")
-      setSurname("")
-      setNum("")
-      setEditData(null)
-    }
-    else{
-      console.info("save");
-
-      const allEntry: any = {id: new Date().getTime().toString() , name: name, surname: surname, num: num };
-  
-      setData([...data, allEntry]);
-      setName("");
-      setSurname("");
-      setNum("");
-    }
-
   };
-
-  const deleteData = (ind: any) => {
-    const newArr = data.filter((value:any) => {
-      return ind !== value.id;
-    });
-    setData(newArr);
-  };
-
-  const editItem = (id:any)=>{
-      const update = data.find((value:any)=>{
-        return value.id === id
-      })
-
-      setName(update.name)
-      setSurname(update.surname)
-      setNum(update.num) 
-
-      setEditData(id)
-      
-
-     
-  }
-
-
-  
 
   useEffect(() => {
-      localStorage.setItem('users',JSON.stringify(data))
-    }, [data])
+    console.info("sja");
+    localStorage.setItem("users", JSON.stringify(data));
+  }, [data]);
+
+  useEffect(() => {
+    console.info("state users : ", user);
+  }, [user]);
+
+
+
+
+
 
   return (
     <div>
-      <form method="POST" onSubmit={addData}>
+      <form method="POST" onSubmit={submit}>
         <div>
           <label>Name:</label>
           <input
@@ -129,7 +89,7 @@ function Form() {
             type="number"
             value={num}
             onChange={(e) => {
-              setNum(e.target.value);
+              setNum(parseInt(e.target.value, 0));
             }}
           ></input>
         </div>
@@ -142,14 +102,18 @@ function Form() {
         <button type="submit">Save</button>
       </form>
 
-      {data.map((value: any) => {
+      {user.map((users: any , value:any) => {
         return (
-          <div key={value.id}>
+          <div key={users.id}>
             <p>
-              <b>Name</b> {value.name}, <b> surname</b> {value.surname} and number is {value.num}
+              <b>Name</b> {users.name}, <b> surname</b> {users.surname} and
+              number is {users.num}
             </p>
-            <button onClick={()=> editItem(value.id)}>edit</button>
-            <button onClick={() => deleteData(value.id)}>delete</button>
+             <div>
+               
+             </div>
+             <button onClick={()=>{<Edit></Edit>}}></button>
+            <button onClick={() => deleteData(users.id)}>delete</button>
           </div>
         );
       })}
